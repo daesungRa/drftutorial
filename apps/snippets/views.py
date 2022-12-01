@@ -59,6 +59,8 @@ class DeprecatedMixinSnippetList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
     """
+    DEPRECATED!
+
     The base class, ```GenericAPIView``` provides the core functionality,
     and the mixin classes provide the ```.list()``` and ```.create()``` actions.
     """
@@ -77,6 +79,8 @@ class DeprecatedMixinSnippetDetail(mixins.RetrieveModelMixin,
                     mixins.DestroyModelMixin,
                     generics.GenericAPIView):
     """
+    DEPRECATED!
+
     Again we're using the ```GenericAPIView``` class to provide the core functionality,
     and adding in mixins to provide the ```.retrieve()```, ```.update()``` and ```.destroy()``` actions.
     """
