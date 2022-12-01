@@ -26,12 +26,80 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from rest_framework import mixins
+from rest_framework import generics
+
 from .models import Snippet
 from .serializers import SnippetSerializer
 
 
-class SnippetList(APIView):
+# Class based views using generic class-based views.
+
+
+class SnippetList(generics.ListCreateAPIView):
     """
+    DRF provides a set of already mixed-in generic views like ```ListCreateAPIView```
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
+
+class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    DRF provides a set of already mixed-in generic views like ```RetrieveUpdateDestroyAPIView```
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
+
+# Class based views using mixing classes.
+
+
+class DeprecatedMixinSnippetList(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
+    """
+    The base class, ```GenericAPIView``` provides the core functionality,
+    and the mixin classes provide the ```.list()``` and ```.create()``` actions.
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request=request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request=request, *args, **kwargs)
+
+
+class DeprecatedMixinSnippetDetail(mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin,
+                    mixins.DestroyModelMixin,
+                    generics.GenericAPIView):
+    """
+    Again we're using the ```GenericAPIView``` class to provide the core functionality,
+    and adding in mixins to provide the ```.retrieve()```, ```.update()``` and ```.destroy()``` actions.
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request=request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request=request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request=request, *args, **kwargs)
+
+
+# Class based views using APIView.
+
+
+class DeprecatedSnippetList(APIView):
+    """
+    DEPRECATED!
+
     List all snippets, or create a new snippet.
     """
     def get(self, request, format=None):
@@ -47,8 +115,10 @@ class SnippetList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class SnippetDetail(APIView):
+class DeprecatedSnippetDetail(APIView):
     """
+    DEPRECATED!
+
     Retrieve, update or delete a snippet instance.
     """
     def get_object(self, pk):
@@ -74,6 +144,9 @@ class SnippetDetail(APIView):
         snippet = self.get_object(pk=pk)
         snippet.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# Function based views.
 
 
 @api_view(['GET', 'POST'])
