@@ -20,6 +20,7 @@ Views of snippets app.
 """
 
 from django.http import Http404
+from django.contrib.auth.models import User
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -28,9 +29,32 @@ from rest_framework.response import Response
 
 from rest_framework import mixins
 from rest_framework import generics
+from rest_framework import permissions
 
 from .models import Snippet
-from .serializers import SnippetSerializer
+from .serializers import UserSerializer, SnippetSerializer
+from .permissions import IsOwnerOrReadOnly
+
+
+# CBV for user model
+
+
+class UserList(generics.ListAPIView):
+    """
+    User list view.
+    This is used for read-only views for user representation only.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserDetail(generics.RetrieveAPIView):
+    """
+    User detail view.
+    This is used for read-only views for user representation only.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 # Class based views using generic class-based views.
@@ -42,6 +66,18 @@ class SnippetList(generics.ListCreateAPIView):
     """
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        """
+        Overridden method from ```rest_framework.mixins.CreateModelMixin```:
+            This method allows us to modify how the instance save is managed,
+            and handle any information that is implicit in the incoming request or reqeusted URL.
+        """
+
+        # The ```CreateModelMixin.create()``` method of this serializer will now be passed an additional 'owner' field,
+        # along with the validated data from the request.
+        serializer.save(owner=self.request.user)
 
 
 class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -50,6 +86,7 @@ class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
 
 # Class based views using mixing classes.
