@@ -2,9 +2,24 @@
 Serializers of snippets app.
 """
 
+from django.contrib.auth.models import User
+
 from rest_framework import serializers
 
-from .models import Snippet, LANGUAGE_CHOICES, STYLE_CHOICES
+from .models import Snippet
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    User serializer. This is endpoints for User models.
+        'Snippets' is a reverse relationship on the User model, it will not be included by default
+        when using the ```ModelSerializer``` class, so we needed to add an explicit field for it.
+    """
+    snippets = serializers.PrimaryKeyRelatedField(many=True, queryset= Snippet.objects.all())
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'snippets',)
 
 
 class SnippetSerializer(serializers.ModelSerializer):
@@ -13,6 +28,12 @@ class SnippetSerializer(serializers.ModelSerializer):
         The create() and update() methods define how fully fledged instances
         are created or modified when calling serializer.save()
     """
+    # 'Snippets' are associated with the user who created them(named by owner).
+    # The 'source' argument controls which attribute is used to populate a field,
+    # and can point at any attribute on the serialized instance.
+    # It can also take the dotted notation shown below, in which case it will traverse the given attributes,
+    # in a similar way as it is used with Django's template language.
+    owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
         """
@@ -20,7 +41,7 @@ class SnippetSerializer(serializers.ModelSerializer):
         Set the code below.
         """
         model = Snippet
-        fields = ('id', 'title', 'code', 'linenos', 'language', 'style',)
+        fields = ('id', 'title', 'code', 'linenos', 'language', 'style', 'owner',)
 
     # id = serializers.IntegerField(read_only=True)
     # title = serializers.CharField(required=False, allow_blank=True, max_length=100)
