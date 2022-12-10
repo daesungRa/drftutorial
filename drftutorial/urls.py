@@ -17,8 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('quickstart/', include('apps.quickstart.urls')),
-    path('snippets/', include('apps.snippets.urls', namespace='snippets')),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path(r'', include('apps.snippets.urls')),  # default app for this tutorial.
+    path(r'admin/', admin.site.urls),
+    path(r'quickstart/', include('apps.quickstart.urls')),
+    path(r'api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
