@@ -23,9 +23,11 @@ from django.http import Http404
 from django.contrib.auth.models import User
 
 from rest_framework import status
+from rest_framework import renderers
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
 from rest_framework import mixins
 from rest_framework import generics
@@ -34,6 +36,40 @@ from rest_framework import permissions
 from .models import Snippet
 from .serializers import UserSerializer, SnippetSerializer
 from .permissions import IsOwnerOrReadOnly
+
+
+# Tutorial5: Single entry point for the snippet's root API
+# Tutorial5: Code highlighting endpoints using pre-rendered HTML plugin provided by REST framework.
+
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    """
+    Single entry point to provide 'snippets' and 'users'.
+        :return:
+            Using REST framework's ```reverse``` function in order to return fully-qualified URLs.
+            and a URL patterns like specified below will also be declared in the ```snippets/urls.py``` module.
+    """
+    return Response({
+        'users': reverse('user-list', request=request, format=format),
+        'snippet-users': reverse('snippet-user-list', request=request, format=format),
+        'snippets': reverse('snippet-list', request=request, format=format),
+    })
+
+
+class SnippetHighlight(generics.GenericAPIView):
+    """
+    Code highlighting endpoint.
+        Instead of using a concrete generic view, we'll use the base class for representing instances,
+        and create our own ```.get()``` method.
+        We're not returning an object instance, but instead a property of an object instance.
+    """
+    queryset = Snippet.objects.all()
+    renderer_classes = [renderers.StaticHTMLRenderer]
+
+    def get(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
 
 
 # CBV for user model
