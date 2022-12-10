@@ -9,21 +9,65 @@ from rest_framework import serializers
 from .models import Snippet
 
 
-class UserSerializer(serializers.ModelSerializer):
+# Use HyperlinkedModelSerializer instead of ModelSerializer.
+# This used for dealing with relationships by hyperlinking.
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
     """
+    ```HyperlinkedModelSerializer``` has the following differences from ```ModelSerializer```.
+        - It does not include the ```id``` field by default.
+        - It includes a ```url``` field, using ```HyperlinkedIdentityField```.
+        - Relationships use ```HyperlinkedRelatedField```, instead of ```PrimaryKeyRelatedField```.
+    """
+    snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('url', 'id', 'username', 'snippets',)
+
+
+class SnippetSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    ```HyperlinkedModelSerializer``` has the following differences from ```ModelSerializer```.
+        - It does not include the ```id``` field by default.
+        - It includes a ```url``` field, using ```HyperlinkedIdentityField```.
+        - Relationships use ```HyperlinkedRelatedField```, instead of ```PrimaryKeyRelatedField```.
+    """
+    owner = serializers.ReadOnlyField(source='owner.username')
+    # Add a new 'highlight' field that is same type as the ```url``` field,
+    # except that it points to the 'snippet-highlight' url pattern, instead of the 'snippet-detail' url pattern.
+    # Because we've included format suffixed URLs such as '.json', we also need to indicate on the 'highlight' field
+    # that any format suffixed hyperlinks it returns should use the '.html' suffix.
+    highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html')
+
+    class Meta:
+        model = Snippet
+        fields = ('url', 'id', 'highlight', 'owner', 'title', 'code', 'linenos', 'language', 'style',)
+
+
+# Use ModelSerializer by default
+
+
+class DeprecatedUserSerializer(serializers.ModelSerializer):
+    """
+    DEPRECATED!
+
     User serializer. This is endpoints for User models.
         'Snippets' is a reverse relationship on the User model, it will not be included by default
         when using the ```ModelSerializer``` class, so we needed to add an explicit field for it.
     """
-    snippets = serializers.PrimaryKeyRelatedField(many=True, queryset= Snippet.objects.all())
+    snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
 
     class Meta:
         model = User
         fields = ('id', 'username', 'snippets',)
 
 
-class SnippetSerializer(serializers.ModelSerializer):
+class DeprecatedSnippetSerializer(serializers.ModelSerializer):
     """
+    DEPRECATED!
+
     Snippet serializer
         The create() and update() methods define how fully fledged instances
         are created or modified when calling serializer.save()
