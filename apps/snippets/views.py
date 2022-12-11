@@ -17,6 +17,14 @@ Views of snippets app.
     rest_framework.views.APIView:
         This module is used for class-based views, a powerful pattern
         that allows us to reuse common functionality, and helps us keep our code DRY.
+
+    rest_framework.viewsets:
+        ```ViewSet``` classes are almost the same thing as ```View``` classes,
+        except that they provide operations such as ```retrieve```, or ```update```,
+        and not method handlers such as ```get``` or ```put```.
+
+[!!] If you look at the DEPRECATED views from the bottom of this page,
+You'll see how much code has been simplified as you go through the tutorial.
 """
 
 from django.http import Http404
@@ -25,7 +33,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework import renderers
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -33,9 +41,59 @@ from rest_framework import mixins
 from rest_framework import generics
 from rest_framework import permissions
 
+from rest_framework import viewsets
+
 from .models import Snippet
 from .serializers import UserSerializer, SnippetSerializer
 from .permissions import IsOwnerOrReadOnly
+
+
+# Tutorial6: 'UserViewSet' that is combination of 'UserList' and 'UserDetail' view classes.
+# Tutorial6: 'SnippetViewSet' that is combination of 'SnippetList', 'SnippetDetail' and 'SnippetHighlight' view classes.
+
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides 'list' and 'retrieve' actions.
+        ```ReadOnlyModelViewSet``` class provide the default 'read-only' operations.
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class SnippetViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides 'list', 'create', 'retrieve', 'update' and 'destroy' actions.
+    Additionally we also provide an extra 'highlight' action.
+        ```ModelViewSet``` class is used to get the complete set of default read and write operations.
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        """
+        This method decorated with ```action``` decorator to create a custom action.
+
+        ```action``` decorator creates custom endpoints
+        that don't fit into the standard 'create'/'update'/'delete' style.
+
+        And custom actions which use the ```@action``` decorator will respond to 'GET' requests by default.
+        We can use the 'methods' argument if we wanted an action that responded to 'POST' requests.
+
+        The URLs for custom actions by default depend on the method name itself.
+        If you want to change the way url should be constructed,
+        you can include ```url_path``` as a decorator keyword argument.
+        """
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+    def perform_create(self, serializer):
+        """
+        Same as 'perform_create' method of the SnippetList view.
+        """
+        serializer.save(owner=self.request.user)
 
 
 # Tutorial5: Single entry point for the snippet's root API
@@ -45,6 +103,8 @@ from .permissions import IsOwnerOrReadOnly
 @api_view(['GET'])
 def api_root(request, format=None):
     """
+    DEPRECATED!
+
     Single entry point to provide 'snippets' and 'users'.
         :return:
             Using REST framework's ```reverse``` function in order to return fully-qualified URLs.
@@ -59,6 +119,8 @@ def api_root(request, format=None):
 
 class SnippetHighlight(generics.GenericAPIView):
     """
+    DEPRECATED!
+
     Code highlighting endpoint.
         Instead of using a concrete generic view, we'll use the base class for representing instances,
         and create our own ```.get()``` method.
@@ -77,6 +139,8 @@ class SnippetHighlight(generics.GenericAPIView):
 
 class UserList(generics.ListAPIView):
     """
+    DEPRECATED!
+
     User list view.
     This is used for read-only views for user representation only.
     """
@@ -86,6 +150,8 @@ class UserList(generics.ListAPIView):
 
 class UserDetail(generics.RetrieveAPIView):
     """
+    DEPRECATED!
+
     User detail view.
     This is used for read-only views for user representation only.
     """
@@ -98,6 +164,8 @@ class UserDetail(generics.RetrieveAPIView):
 
 class SnippetList(generics.ListCreateAPIView):
     """
+    DEPRECATED!
+
     DRF provides a set of already mixed-in generic views like ```ListCreateAPIView```
     """
     queryset = Snippet.objects.all()
@@ -118,6 +186,8 @@ class SnippetList(generics.ListCreateAPIView):
 
 class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     """
+    DEPRECATED!
+
     DRF provides a set of already mixed-in generic views like ```RetrieveUpdateDestroyAPIView```
     """
     queryset = Snippet.objects.all()
