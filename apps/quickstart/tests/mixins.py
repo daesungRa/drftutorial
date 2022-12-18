@@ -5,7 +5,7 @@ Mixins for quickstart app
 from django.contrib.auth.models import User
 
 
-class UserTestMixin(object):
+class CreateTestUserMixin(object):
     """
     Mixin for user test.
     """

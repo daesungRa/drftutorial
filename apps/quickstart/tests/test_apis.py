@@ -9,10 +9,10 @@ from django.contrib.auth.models import User, Group
 
 from apps.quickstart.serializers import UserSerializer, GroupSerializer
 
-from .mixins import UserTestMixin
+from .mixins import CreateTestUserMixin
 
 
-class BaseAPITestCase(UserTestMixin, APITestCase):
+class BaseAPITestCase(CreateTestUserMixin, APITestCase):
     """
     Base module for REST API test.
     """
