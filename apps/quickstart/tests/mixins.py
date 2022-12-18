@@ -31,7 +31,3 @@ class CreateTestUserMixin(object):
         user = User(email=target_email, username=target_username)
         user.set_password(target_password)  # Set hashed password
         user.save()
-
-    def setUp(self) -> None:
-        """Setup default test user"""
-        self._create_test_user()

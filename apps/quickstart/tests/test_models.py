@@ -9,10 +9,16 @@ from django.contrib.auth.models import User
 from .mixins import CreateTestUserMixin
 
 
-class UserTest(CreateTestUserMixin, TestCase):
+class UserTests(CreateTestUserMixin, TestCase):
     """
     Test module for Django User model.
     """
+
+    def setUp(self) -> None:
+        """Setup default test user"""
+        self._create_test_user()
+
+        super(UserTests, self).setUp()
 
     def test_get_user(self) -> None:
         """User model test"""

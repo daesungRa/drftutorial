@@ -1,5 +1,5 @@
 """
-Test views in quickstart app.
+Test APIs in quickstart app.
 """
 
 from rest_framework import status
@@ -21,8 +21,9 @@ class BaseAPITestCase(CreateTestUserMixin, APITestCase):
         abstract = True
 
     def setUp(self) -> None:
-        """Setup default test user"""
-        super(BaseAPITestCase, self).setUp()
+        """Setup default test user, authentication and request factory"""
+        # Create test user
+        self._create_test_user()
 
         # Set authentication for REST API call
         test_user = User.objects.get(username=self.username)
@@ -30,6 +31,8 @@ class BaseAPITestCase(CreateTestUserMixin, APITestCase):
 
         # Set request factory
         self.factory = APIRequestFactory()
+
+        super(BaseAPITestCase, self).setUp()
 
 
 class GetAndRetrieveTests(BaseAPITestCase):
