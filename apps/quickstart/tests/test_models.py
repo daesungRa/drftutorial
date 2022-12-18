@@ -6,10 +6,10 @@ from django.test import TestCase
 
 from django.contrib.auth.models import User
 
-from .mixins import UserTestMixin
+from .mixins import CreateTestUserMixin
 
 
-class UserTest(UserTestMixin, TestCase):
+class UserTest(CreateTestUserMixin, TestCase):
     """
     Test module for Django User model.
     """
